@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
+# npm enforces this repository's pnpm-only devEngines before `npx pnpm` can
+# start, so invoke the fallback from the parent directory while targeting the
+# repository explicitly with --dir.
+cd "$repo_dir/.."
+if command -v corepack >/dev/null 2>&1; then
+  pnpm=(corepack pnpm)
+else
+  pnpm=(npx --yes pnpm@11.22.0)
+fi
+
+"${pnpm[@]}" --dir "$repo_dir" install --frozen-lockfile
+"${pnpm[@]}" --dir "$repo_dir/apps/web" run build
+cp "$repo_dir/davafons/config.json" "$repo_dir/apps/web/webapp/config.json"
+rm -f "$repo_dir/apps/desktop/webapp"
+ln -s ../web/webapp "$repo_dir/apps/desktop/webapp"
+"${pnpm[@]}" --dir "$repo_dir/apps/desktop" run asar-webapp
+
+CSC_IDENTITY_AUTO_DISCOVERY=false VARIANT_PATH="$repo_dir/davafons/variant.json" \
+  "${pnpm[@]}" --dir "$repo_dir/apps/desktop" run build --arm64 --publish=never
+
+app="$repo_dir/apps/desktop/dist/mac-arm64/Element Bridge.app"
+codesign --force --deep --sign - "$app"
+codesign --verify --deep --strict "$app"
+echo "Locally signed app: $app"

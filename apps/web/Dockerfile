@@ -23,7 +23,10 @@ RUN pnpm install --frozen-lockfile
 RUN --mount=type=bind,source=.git,target=/src/.git /src/scripts/docker-link-repos.sh
 
 # Build
-COPY --link --exclude=.git --exclude=apps/web/docker . /src
+# This tracked documentation symlink points outside apps/web and is not needed
+# by the application build. Excluding it also keeps remote Git build contexts
+# portable across BuildKit versions which otherwise try to checksum its target.
+COPY --link --exclude=.git --exclude=apps/web/docker --exclude=apps/web/src/customisations/README.md . /src
 RUN --mount=type=bind,source=.git,target=/src/.git /src/scripts/docker-package.sh
 
 # Copy the config now so that we don't create another layer in the app image

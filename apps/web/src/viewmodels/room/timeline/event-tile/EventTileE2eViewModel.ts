@@ -29,6 +29,9 @@ export interface EventTileE2eViewModelProps {
     isLocalRoom?: (roomId: string) => boolean;
 }
 
+// These exclusive namespaces are owned by qTower's declared appservices.
+const TRUSTED_BRIDGE_GHOST = /^@(line|discord|whatsapp|gmessages)_[^:]+:matrix\.q\.davafons\.cc$/;
+
 interface EventTileE2eShieldState {
     shieldColour: EventShieldColour;
     shieldReason: EventShieldReason | null;
@@ -68,6 +71,7 @@ export class EventTileE2eViewModel extends BaseViewModel<EventTileE2ePadlockView
             shieldReason: shieldState.shieldReason,
             isRoomEncrypted: props.isRoomEncrypted,
             isLocalRoom: props.isLocalRoom?.(roomId) ?? isLocalRoom(roomId),
+            isTrustedBridgeSender: TRUSTED_BRIDGE_GHOST.test(verificationEvent.getSender() ?? ""),
         });
     }
 

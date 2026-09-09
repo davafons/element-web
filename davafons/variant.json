@@ -1,0 +1,7 @@
+{
+  "appId": "cc.davafons.element.bridge",
+  "name": "element-bridge",
+  "productName": "Element Bridge",
+  "description": "Element Desktop with qTower bridge trust presentation",
+  "protocols": ["cc.davafons.element.bridge"]
+}

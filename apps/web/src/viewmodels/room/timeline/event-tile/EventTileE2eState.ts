@@ -38,6 +38,10 @@ export type EventTileE2ePadlockState =
           shieldReason: EventShieldReason | null;
       }
     | {
+          /** Render a local-policy notice for a trusted application-service bridge. */
+          kind: "trustedBridge";
+      }
+    | {
           /** Render the unencrypted warning in an encrypted room. */
           kind: "unencrypted";
       };
@@ -79,6 +83,8 @@ export interface EventTileE2ePadlockStateInput {
     isRoomEncrypted?: boolean | null;
     /** Whether the event belongs to a local room. */
     isLocalRoom: boolean;
+    /** Whether the sender is controlled by a locally trusted bridge appservice. */
+    isTrustedBridgeSender?: boolean;
 }
 
 /** Derives the E2E padlock display state for EventTile. */
@@ -89,6 +95,7 @@ export function getEventTileE2ePadlockState({
     shieldReason,
     isRoomEncrypted,
     isLocalRoom,
+    isTrustedBridgeSender,
 }: EventTileE2ePadlockStateInput): EventTileE2ePadlockState {
     if (isLocalRoom) {
         return { kind: "none" };
@@ -102,6 +109,18 @@ export function getEventTileE2ePadlockState({
             default:
                 return { kind: "decryptionFailure" };
         }
+    }
+
+    // A mautrix bridge encrypts events for remote-user ghosts with the bridge
+    // bot's device. This local policy changes only the presentation: it does
+    // not promote the event's cryptographic trust state.
+    if (
+        isTrustedBridgeSender &&
+        (shieldReason === EventShieldReason.UNSIGNED_DEVICE ||
+            shieldReason === EventShieldReason.MISMATCHED_SENDER ||
+            shieldReason === EventShieldReason.AUTHENTICITY_NOT_GUARANTEED)
+    ) {
+        return { kind: "trustedBridge" };
     }
 
     if (shieldReason === EventShieldReason.AUTHENTICITY_NOT_GUARANTEED) {
@@ -199,6 +218,13 @@ export function getEventTileE2ePadlockViewState(input: EventTileE2ePadlockStateI
                 kind: "icon",
                 icon: E2ePadlockIcon.Warning,
                 title: _t("common|unencrypted"),
+            };
+
+        case "trustedBridge":
+            return {
+                kind: "icon",
+                icon: E2ePadlockIcon.Normal,
+                title: "Encrypted by a trusted local bridge; remote-sender identity is not cryptographically verified.",
             };
 
         case "shield":

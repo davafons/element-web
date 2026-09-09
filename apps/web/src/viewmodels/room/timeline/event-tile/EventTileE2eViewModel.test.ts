@@ -92,6 +92,69 @@ describe("EventTileE2eViewModel", () => {
         );
     });
 
+    it("renders the unsigned-device warning as a local bridge notice only for qTower bridge ghosts", async () => {
+        const mxEvent = mkEvent({
+            event: true,
+            type: EventType.RoomMessage,
+            room: roomId,
+            user: "@line_U123456:matrix.q.davafons.cc",
+            content: { msgtype: MsgType.Text, body: "Hello from LINE" },
+        });
+        vi.spyOn(mxEvent, "isEncrypted").mockReturnValue(true);
+        const cli = makeClient(
+            vi.fn().mockResolvedValue({
+                shieldColour: EventShieldColour.RED,
+                shieldReason: EventShieldReason.UNSIGNED_DEVICE,
+            } as EventEncryptionInfo),
+        );
+
+        const vm = makeViewModel({
+            cli,
+            mxEvent,
+            isRoomEncrypted: true,
+            enableListeners: true,
+        });
+        vm.start();
+
+        await waitFor(() =>
+            expect(vm.getSnapshot()).toEqual({
+                kind: "icon",
+                icon: E2ePadlockIcon.Normal,
+                title:
+                    "Encrypted by a trusted local bridge; remote-sender identity is not cryptographically verified.",
+            }),
+        );
+    });
+
+    it("renders authenticity-not-guaranteed as a local bridge notice for qTower bridge ghosts", async () => {
+        const mxEvent = mkEvent({
+            event: true,
+            type: EventType.RoomMessage,
+            room: roomId,
+            user: "@whatsapp_34600000000:matrix.q.davafons.cc",
+            content: { msgtype: MsgType.Text, body: "Hello from WhatsApp" },
+        });
+        vi.spyOn(mxEvent, "isEncrypted").mockReturnValue(true);
+        const cli = makeClient(
+            vi.fn().mockResolvedValue({
+                shieldColour: EventShieldColour.GREY,
+                shieldReason: EventShieldReason.AUTHENTICITY_NOT_GUARANTEED,
+            } as EventEncryptionInfo),
+        );
+
+        const vm = makeViewModel({ cli, mxEvent, isRoomEncrypted: true, enableListeners: true });
+        vm.start();
+
+        await waitFor(() =>
+            expect(vm.getSnapshot()).toEqual({
+                kind: "icon",
+                icon: E2ePadlockIcon.Normal,
+                title:
+                    "Encrypted by a trusted local bridge; remote-sender identity is not cryptographically verified.",
+            }),
+        );
+    });
+
     it("re-verifies when the sender verification changes", async () => {
         const mxEvent = makeEvent();
         vi.spyOn(mxEvent, "isEncrypted").mockReturnValue(true);
