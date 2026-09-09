@@ -2122,6 +2122,7 @@
         "section": {
             "chats": "聊天",
             "favourites": "收藏",
+            "invites": "邀请",
             "low_priority": "低优先级"
         },
         "show_less": "显示更少"
