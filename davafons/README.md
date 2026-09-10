@@ -10,6 +10,11 @@ explanation.
 The Matrix cryptographic result is not changed or promoted. Every other sender
 and warning reason retains Element's standard presentation.
 
+The local, read-only archive service account
+`@roxy:matrix.q.davafons.cc` is also hidden from member lists. It remains a
+joined Matrix member so it can receive bridged events and E2EE keys; this is a
+presentation-only change and does not hide any conversational participant.
+
 Build the parallel macOS application with:
 
 ```bash
