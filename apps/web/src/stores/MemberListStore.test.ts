@@ -79,6 +79,15 @@ describe("MemberListStore", () => {
         expect(joined).toEqual([room.getMember(alice)]);
     });
 
+    it("hides qTower's archive reader from the user-facing member list", async () => {
+        const archiveReader = "@roxy:matrix.q.davafons.cc";
+        addMember(room, archiveReader, KnownMembership.Join, "Archive reader");
+        addMember(room, bob, KnownMembership.Join);
+
+        const { joined } = await store.loadMemberList(roomId);
+        expect(joined).toEqual([room.getMember(alice), room.getMember(bob)]);
+    });
+
     it("fails gracefully for invalid rooms", async () => {
         const { invited, joined } = await store.loadMemberList("!idontexist:bar");
         expect(invited).toEqual([]);

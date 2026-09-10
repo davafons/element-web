@@ -17,6 +17,12 @@ import SdkConfig from "../SdkConfig";
 // matches all ASCII punctuation: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 const SORT_REGEX = /[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+/g;
 
+// qTower's archive reader is a read-only service account. It must join rooms
+// to receive bridged events, but is never a conversational participant. Keep
+// the account in Matrix state for audit and E2EE, while omitting it from the
+// user-facing member list in this private Element build.
+const QTOWER_ARCHIVE_READER = "@roxy:matrix.q.davafons.cc";
+
 /**
  * A class for storing application state for MemberList.
  */
@@ -162,6 +168,9 @@ export class MemberListStore {
         members.forEach((m) => {
             if (m.membership !== KnownMembership.Join && m.membership !== KnownMembership.Invite) {
                 return; // bail early for left/banned users
+            }
+            if (m.userId === QTOWER_ARCHIVE_READER) {
+                return;
             }
             if (query) {
                 query = query.toLowerCase();
