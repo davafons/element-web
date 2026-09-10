@@ -21,7 +21,11 @@ const SORT_REGEX = /[\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+/g;
 // to receive bridged events, but is never a conversational participant. Keep
 // the account in Matrix state for audit and E2EE, while omitting it from the
 // user-facing member list in this private Element build.
-const QTOWER_ARCHIVE_READER = "@roxy:matrix.q.davafons.cc";
+const QTOWER_ARCHIVE_READERS = new Set([
+    "@archive:matrix.q.davafons.cc",
+    // Retained while the prior archive account leaves existing portals.
+    "@roxy:matrix.q.davafons.cc",
+]);
 
 /**
  * A class for storing application state for MemberList.
@@ -169,7 +173,7 @@ export class MemberListStore {
             if (m.membership !== KnownMembership.Join && m.membership !== KnownMembership.Invite) {
                 return; // bail early for left/banned users
             }
-            if (m.userId === QTOWER_ARCHIVE_READER) {
+            if (QTOWER_ARCHIVE_READERS.has(m.userId)) {
                 return;
             }
             if (query) {

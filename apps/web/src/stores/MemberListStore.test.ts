@@ -79,9 +79,11 @@ describe("MemberListStore", () => {
         expect(joined).toEqual([room.getMember(alice)]);
     });
 
-    it("hides qTower's archive reader from the user-facing member list", async () => {
-        const archiveReader = "@roxy:matrix.q.davafons.cc";
+    it("hides qTower's archive readers from the user-facing member list", async () => {
+        const archiveReader = "@archive:matrix.q.davafons.cc";
+        const legacyArchiveReader = "@roxy:matrix.q.davafons.cc";
         addMember(room, archiveReader, KnownMembership.Join, "Archive reader");
+        addMember(room, legacyArchiveReader, KnownMembership.Join, "Legacy archive reader");
         addMember(room, bob, KnownMembership.Join);
 
         const { joined } = await store.loadMemberList(roomId);
